@@ -26,28 +26,33 @@ OSEK OSEK {
       STACK = 512;
       TYPE = BASIC;
       SCHEDULE = NON;
-      RESOURCE = MODBUSR;
       RESOURCE = POSIXR;
+      RESOURCE = MODBUSR;
    };
    
-
-
+   
    TASK ActivateLeds {
       PRIORITY = 5;
       ACTIVATION = 1;
-      AUTOSTART = TRUE {
-         APPMODE = AppMode1;
-      }
       STACK = 512;
       TYPE = EXTENDED;
-      SCHEDULE = NON;
+      EVENT = POSIXE;
+      RESOURCE = POSIXR;
+      SCHEDULE = FULL;
    };
-   ALARM ActivateLeds {
+   
+   ALARM ActivateLedsTask {
       COUNTER = HardwareCounter;
       ACTION = ACTIVATETASK {
-      TASK = ActivateLeds;
-      }
-   }
+         TASK = ActivateLeds;
+         }
+         AUTOSTART = TRUE {
+         APPMODE = AppMode1;
+         ALARMTIME = 0;
+         CYCLETIME = 10;
+      };
+   };
+   
    COUNTER HardwareCounter {
       MAXALLOWEDVALUE = 1000;
       TICKSPERBASE = 1;
@@ -62,20 +67,53 @@ OSEK OSEK {
       PRIORITY = 4;
       ACTIVATION = 1;
       STACK = 512;
-      TYPE = BASIC;
-      SCHEDULE = NON;
+      TYPE = EXTENDED;
+      SCHEDULE = FULL;
+      RESOURCE = POSIXR;
+      EVENT = POSIXE;
+      SCHEDULE = FULL;
+   };
+   
+   ALARM LeerTecladoTask {
+      COUNTER = HardwareCounter;
+      ACTION = ACTIVATETASK {
+         TASK = LeerTeclado;
+         TASK = ModbusSalve;
+      }
+      AUTOSTART = TRUE {
+         APPMODE = AppMode1;
+         ALARMTIME = 0;
+         CYCLETIME = 10;
+      };
    };
    
    
-   
-   TASK ModbusSaleve {
-      PRIORITY = 4;
+   TASK ModbusSalve {
+      PRIORITY = 3;
       ACTIVATION = 1;
       STACK = 512;
-      TYPE = BASIC;
-      SCHEDULE = NON;
+      TYPE = EXTENDED;
+      SCHEDULE = FULL;
+      EVENT = POSIXE;
+      RESOURCE = MODBUSR;
+      RESOURCE = POSIXR;
+   };
+   
+   ISR UART0_IRQHandler {
+      INTERRUPT = UART0;
+      CATEGORY = 2;
+      PRIORITY = 0;
    };
 
+   ISR UART2_IRQHandler {
+      INTERRUPT = UART2;
+      CATEGORY = 2;
+      PRIORITY = 0;
+   };
 
-   
+   ISR UART3_IRQHandler {
+      INTERRUPT = UART3;
+      CATEGORY = 2;
+      PRIORITY = 0;
+   };
 };

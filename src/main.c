@@ -76,8 +76,14 @@
 #include "modbusSlave.h"
 
 /*==================[macros and definitions]=================================*/
+#define PERIODIC_MIN 100
+#define PERIODIC_MAX 1000
 
 /*==================[internal data declaration]==============================*/
+
+uint16 periodic = PERIODIC_MAX;
+uint16 cont = 0;
+uint8  maskled_actual = EDU_CIAA_NXP_LED3_VERDE;
 
 /*==================[internal functions declaration]=========================*/
 
@@ -136,20 +142,55 @@ int main(void)
 
 TASK(ActivateLeds)
 {
-
+      cont +=10;
+      if (cont == periodic)
+      {
+         leds_toggle(maskled_actual);
+         cont=0;
+      }
    TerminateTask();
 }
 
 TASK(LeerTeclado)
 {
+   uint8 mask_tecla;
    teclado_task();
+   mask_tecla = teclado_getFlancos();
+   if(mask_tecla==TECLADO_TEC1_BIT && maskled_actual != EDU_CIAA_NXP_RGB_ROJO)
+      {
+      leds_off(maskled_actual);
+      maskled_actual = maskled_actual >> 1;
+      }
+
+   if(mask_tecla==TECLADO_TEC2_BIT && maskled_actual != EDU_CIAA_NXP_LED3_VERDE)
+      {
+         leds_off(maskled_actual);
+         maskled_actual = maskled_actual << 1;
+      }
+
+   if(mask_tecla == TECLADO_TEC3_BIT && periodic < PERIODIC_MAX)
+      {
+         periodic += 10;
+      }
+   else if (periodic >= PERIODIC_MAX)
+      {
+         periodic = PERIODIC_MAX;
+      }
+
+   if(mask_tecla == TECLADO_TEC4_BIT && periodic > PERIODIC_MIN)
+      {
+         periodic -= 10;
+      }
+   else if (periodic <= PERIODIC_MIN)
+      {
+         periodic = PERIODIC_MIN;
+      }
 
    TerminateTask();
 }
 
-TASK(ActiveModbus)
+TASK(ModbusSalve)
 {
-
    TerminateTask();
 }
 
@@ -161,11 +202,6 @@ TASK(InitTask)
    teclado_init();
 
    leds_init();
-
-   SetRelAlarm(ActivateLeds, 100, 100);
-
-   /* open CIAA digital outputs */
-   fd_out = ciaaPOSIX_open("/dev/dio/out/0", O_RDWR);
 
    modbusSlave_init();
 
