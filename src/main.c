@@ -134,6 +134,26 @@ int main(void)
    return 0;
 }
 
+TASK(ActivateLeds)
+{
+
+   TerminateTask();
+}
+
+TASK(LeerTeclado)
+{
+   teclado_task();
+
+   TerminateTask();
+}
+
+TASK(ActiveModbus)
+{
+
+   TerminateTask();
+}
+
+
 TASK(InitTask)
 {
    ciaak_start();
@@ -141,6 +161,11 @@ TASK(InitTask)
    teclado_init();
 
    leds_init();
+
+   SetRelAlarm(ActivateLeds, 100, 100);
+
+   /* open CIAA digital outputs */
+   fd_out = ciaaPOSIX_open("/dev/dio/out/0", O_RDWR);
 
    modbusSlave_init();
 

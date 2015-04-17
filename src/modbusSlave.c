@@ -245,8 +245,6 @@ extern void modbusSlave_init(void)
 {
    int32_t fdSerialPort;
 
-   ciaak_start();
-
    fdSerialPort = ciaaPOSIX_open("/dev/serial/uart/0", O_RDWR | O_NONBLOCK);
 
    /* Open Modbus Slave */
